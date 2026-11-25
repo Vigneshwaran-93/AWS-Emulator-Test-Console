@@ -1,0 +1,37 @@
+<h1>1. Install</h1>
+<p class="lead">The emulator ships as a native Linux package only. On Windows/macOS you run it in Docker. There is no prebuilt image, so this step builds one from the official RPM.</p>
+
+<h2>Prerequisites</h2>
+<table class="grid" id="prereq"><tr><td>checking...</td></tr></table>
+<p><button type="button" id="btn-prereq">Re-check</button></p>
+<div class="note">Docker Desktop must be <b>running</b> (whale icon says &ldquo;Engine running&rdquo;). Install it from docker.com if missing.</div>
+
+<h2>Build the Docker image</h2>
+<p>Generated <code>docker/Dockerfile</code> (downloads <code>aws-emulator-x86_64.rpm</code> from <code>downloads.aws.com</code>, runs as UID 1000, binds 0.0.0.0 inside the container):</p>
+<pre class="code">{{ dockerfile }}</pre>
+<p><button type="button" id="btn-build" class="primary">Build image</button> <span id="build-msg"></span></p>
+<pre class="code log" id="build-log" hidden></pre>
+
+<h2>Python dependencies for this console</h2>
+<pre class="code">python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+.venv\Scripts\python app.py</pre>
+
+<h2>Optional: AWS CLI v2</h2>
+<p>Only needed for the CLI examples on the Connect page. Install from the
+<a href="https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html" target="_blank" rel="noopener">AWS CLI guide</a> (need 2.35.0+ for the agent toolkit).</p>
+
+<details class="card"><summary><span class="ctitle">Native Linux install (reference)</span></summary>
+<div class="run">
+<pre class="code">sudo dnf install -y https://downloads.aws.com/aws-emulator/packages/aws-emulator/LTS/latest/aws-emulator-x86_64.rpm      # aarch64: aws-emulator-aarch64.rpm
+# Debian / Ubuntu
+curl -fsSLo aws-emulator.deb https://downloads.aws.com/aws-emulator/packages/aws-emulator/LTS/latest/aws-emulator_amd64.deb
+sudo apt-get install -y ./aws-emulator.deb
+aws-emulator -v          # verify; installs to /opt/aws-emulator, binary in /usr/bin
+aws-emulator             # run in the foreground, Ctrl+C to stop</pre>
+<p>Optional signature check: import <code>https://downloads.aws.com/keys/gpg/current.asc</code>, fingerprint <code>98BC F336 A3BE 53B7 34E9 67C5 2E5B F49B D940 F624</code>.</p>
+</div></details>
+
+<h2>Uninstall / cleanup</h2>
+<pre class="code">docker image rm aws-emulator
+Remove-Item -Recurse -Force "$env:USERPROFILE\.aws\emulator"</pre>

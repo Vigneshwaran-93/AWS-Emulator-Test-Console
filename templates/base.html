@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AWS Emulator Test Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div id="app">
+
+  <!-- ================= LEFT HALF: documentation / forms ================= -->
+  <section id="left">
+    <header class="titlebar">
+      <span class="title">AWS Emulator Test Console</span>
+      <span id="emu-status" class="pill off">checking...</span>
+    </header>
+    <div id="leftbody">
+      <nav id="nav">
+        <div class="navgroup">Install &amp; Setup</div>
+        {% for key, label in nav.setup %}
+        <a href="#/{{ key }}" data-page="{{ key }}">{{ label }}</a>
+        {% endfor %}
+        <div class="navgroup">Basic services</div>
+        {% for s in nav.basic %}
+        <a href="#/{{ s.id }}" data-page="{{ s.id }}">{{ s.title }}</a>
+        {% endfor %}
+        <div class="navgroup">Generative AI &amp; ML</div>
+        {% for s in nav.genai %}
+        <a href="#/{{ s.id }}" data-page="{{ s.id }}">{{ s.title }}</a>
+        {% endfor %}
+        <div class="navgroup">End-to-end</div>
+        <a href="#/workflows" data-page="workflows">Cross-service workflows</a>
+      </nav>
+      <main id="content"><p>Loading...</p></main>
+    </div>
+  </section>
+
+  <!-- ================= RIGHT HALF: trace monitor ================= -->
+  <section id="right">
+    <header class="titlebar">
+      <span class="title">Call Monitor &mdash; request / response trace</span>
+      <span id="trace-count" class="pill neutral">0 calls</span>
+    </header>
+    <div id="mon-controls">
+      <label>Capture mode
+        <select id="mode">
+          <option value="sdk"{% if state.mode == 'sdk' %} selected{% endif %}>SDK hooks (direct)</option>
+          <option value="proxy"{% if state.mode == 'proxy' %} selected{% endif %}>Logging proxy (wire)</option>
+          <option value="both"{% if state.mode == 'both' %} selected{% endif %}>Both (SDK + wire)</option>
+        </select>
+      </label>
+      <label>Filter <input id="filter" type="text" placeholder="service, operation, status..." size="22"></label>
+      <label><select id="statusfilter">
+        <option value="">all</option><option value="ok">2xx/3xx</option><option value="err">errors</option><option value="501">501 only</option>
+      </select></label>
+      <button id="btn-pause" type="button">Pause</button>
+      <button id="btn-clear" type="button">Clear</button>
+      <a class="btn" id="btn-export" href="/api/traces/export" title="Export includes request headers and the emulator's temporary credentials">Export JSON</a>
+      <button id="btn-collapse" type="button">Collapse all</button>
+    </div>
+    <div id="mon-help">
+      <b>SDK hooks</b>: calls made by this console, captured inside boto3 (request as signed, parsed response).
+      <b>Proxy</b>: console traffic goes through <code>http://127.0.0.1:{{ state.proxy_port }}</code> and is recorded on the wire; also captures your own CLI/SDK calls.
+      <b>Both</b>: SDK rows get an extra &ldquo;Wire&rdquo; section.
+    </div>
+    <div id="traces"></div>
+  </section>
+
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

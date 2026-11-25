@@ -1,0 +1,11 @@
+<h1>4. Service coverage</h1>
+<p class="lead">The docs don't list supported services, so this page probes them. One cheap read-only call per service; <span class="badge b501">501</span> means the emulator does not implement that API.</p>
+<p><button type="button" id="btn-probe" class="primary">Probe all {{ services|length }} services</button> <span id="probe-msg"></span></p>
+<table class="grid" id="probe-table">
+<tr><th>Service</th><th>Group</th><th>Probe call</th><th>Result</th><th>Detail</th><th>ms</th></tr>
+{% for s in services %}
+<tr data-id="{{ s.id }}"><td><a href="#/{{ s.id }}">{{ s.title }}</a></td><td>{{ 'GenAI / ML' if s.group == 'genai' else 'Core' }}</td><td><code>{{ s.probe[0] }}.{{ s.probe[1] }}</code></td><td class="res">-</td><td class="det"></td><td class="ms"></td></tr>
+{% endfor %}
+</table>
+<div class="note"><b>implemented</b> = call succeeded. <b>reachable</b> = the service answered with an AWS-style error (e.g. validation), so the API exists.
+<b>501</b> = not implemented. Detailed per-service scores: <a href="https://github.com/aws/aws-emulator/releases" target="_blank" rel="noopener">GitHub releases</a>.</div>

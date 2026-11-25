@@ -1,0 +1,60 @@
+<h1>3. Connect CLI / SDK</h1>
+<p class="lead">This console is already wired up. Use the snippets below to point <i>your own</i> tools at the emulator &mdash; they will show up in the monitor when you use the proxy.</p>
+
+<h2>A. Direct (HTTPS, uses the emulator's CA)</h2>
+<p>PowerShell, in the same window that runs your tools (port <b>{{ state.port }}</b>):</p>
+<pre class="code">$d = "$env:USERPROFILE\.aws\emulator\{{ state.port }}"
+$env:AWS_ENDPOINT_URL = "https://127.0.0.1:{{ state.port }}"
+$env:AWS_SHARED_CREDENTIALS_FILE = "$d\emulator_credentials"
+$env:AWS_CONFIG_FILE = "$d\config"
+$env:AWS_CA_BUNDLE = "$d\ca.pem"
+$env:AWS_EC2_METADATA_DISABLED = "true"
+$env:AWS_DISABLE_HOST_PREFIX_INJECTION = "true"
+$env:AWS_REGION = "us-east-1"; $env:AWS_DEFAULT_REGION = "us-east-1"
+Remove-Item Env:AWS_ACCESS_KEY_ID, Env:AWS_SECRET_ACCESS_KEY, Env:AWS_SESSION_TOKEN, Env:AWS_PROFILE -ErrorAction SilentlyContinue
+
+aws sts get-caller-identity     # expect account 000000000000, user/emulator
+aws s3 mb s3://my-first-bucket</pre>
+<p>macOS / Linux / Git Bash:</p>
+<pre class="code">export AWS_ENDPOINT_URL=https://127.0.0.1:{{ state.port }}
+export AWS_SHARED_CREDENTIALS_FILE=~/.aws/emulator/{{ state.port }}/emulator_credentials
+export AWS_CONFIG_FILE=~/.aws/emulator/{{ state.port }}/config
+export AWS_CA_BUNDLE=~/.aws/emulator/{{ state.port }}/ca.pem
+export AWS_EC2_METADATA_DISABLED=true AWS_DISABLE_HOST_PREFIX_INJECTION=true AWS_REGION=us-east-1 AWS_DEFAULT_REGION=us-east-1
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_PROFILE</pre>
+
+<h2>B. Through this console's logging proxy (plain HTTP, no CA needed)</h2>
+<p>Every call is recorded in the monitor with raw request/response. Signatures stay valid because the proxy forwards the original <code>Host</code> header.</p>
+<pre class="code">$d = "$env:USERPROFILE\.aws\emulator\{{ state.port }}"
+$env:AWS_SHARED_CREDENTIALS_FILE = "$d\emulator_credentials"
+$env:AWS_REGION = "us-east-1"
+aws --endpoint-url http://127.0.0.1:{{ state.proxy_port }} dynamodb list-tables</pre>
+
+<h2>C. boto3 (no code change needed once the env vars are set)</h2>
+<pre class="code">import boto3
+s3 = boto3.client("s3")                       # picks up AWS_ENDPOINT_URL / AWS_CA_BUNDLE
+print(s3.list_buckets()["Buckets"])
+
+# or explicit:
+creds = open(r"{{ emu_dir }}\{{ state.port }}\emulator_credentials").read()
+client = boto3.client("dynamodb", endpoint_url="https://127.0.0.1:{{ state.port }}",
+                      verify=r"{{ emu_dir }}\{{ state.port }}\ca.pem", region_name="us-east-1")</pre>
+
+<h2>Other SDKs</h2>
+<table class="grid">
+<tr><th>JavaScript v3</th><td><code>NODE_EXTRA_CA_CERTS</code> = ca.pem, and <code>disableHostPrefix: true</code></td></tr>
+<tr><th>Java 2.x</th><td><code>JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=...\truststore.p12 -Djavax.net.ssl.trustStoreType=PKCS12</code></td></tr>
+<tr><th>Rust / .NET</th><td><code>SSL_CERT_FILE</code> = ca.pem (Windows may need ca.pem imported into the certificate store)</td></tr>
+<tr><th>Go v2</th><td><code>AWS_CA_BUNDLE</code> is enough</td></tr>
+</table>
+
+<h2>Health check</h2>
+<pre class="code">curl --cacert "$env:USERPROFILE\.aws\emulator\{{ state.port }}\ca.pem" https://127.0.0.1:{{ state.port }}/__admin/health     # -&gt; ok</pre>
+
+<h2>Gotchas</h2>
+<ul>
+<li>S3 needs <code>127.0.0.1</code>, not <code>localhost</code> (this console forces path-style addressing).</li>
+<li>Presigned URLs and endpoint ports embed the emulator's port.</li>
+<li>Real AWS env credentials override the emulator's file &mdash; unset them.</li>
+<li>Setting <code>AWS_CONFIG_FILE</code> replaces your own config for that shell.</li>
+</ul>

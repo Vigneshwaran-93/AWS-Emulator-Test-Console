@@ -1,0 +1,24 @@
+{% from '_macros.html' import card %}
+<h1>{{ svc.title }}</h1>
+<p class="lead">{{ svc.desc }}
+  {% if svc.group != 'workflows' %}<span class="meta">boto3 client: <code>{{ svc.boto }}</code>{% if svc.docs %} &middot; <a href="{{ svc.docs }}" target="_blank" rel="noopener">AWS API reference</a>{% endif %}</span>{% endif %}
+</p>
+{% if svc.group != 'workflows' %}
+<div class="note">Each form calls the emulator through boto3 with the values you type. Operations the emulator has not implemented return
+<b>HTTP 501 NotImplemented</b> and are flagged <span class="badge b501">501</span>. Every request/response appears in the monitor on the right.</div>
+{% endif %}
+
+{% if svc.group == 'genai' %}
+<div class="note"><b>Heads-up:</b> the emulator implements the AWS <i>APIs</i> but runs no ML models. Inference calls (Converse, embeddings, Polly audio, vision/OCR content) return
+stub or placeholder content, and some operations are 501 / "maintenance mode" / validation errors exactly as AWS would answer. Use these pages to test your request shapes, error handling and plumbing.</div>
+{% endif %}
+
+{% if svc.scenarios %}
+<h2>Scenarios <span class="sub">(multi-step, real-world flows)</span></h2>
+{% for it in svc.scenarios %}{{ card(svc.id, 'scenario', it, open=loop.first) }}{% endfor %}
+{% endif %}
+
+{% if svc.actions %}
+<h2>Operations <span class="sub">(single API calls &mdash; fields marked as shared stay in sync across forms)</span></h2>
+{% for it in svc.actions %}{{ card(svc.id, 'action', it) }}{% endfor %}
+{% endif %}

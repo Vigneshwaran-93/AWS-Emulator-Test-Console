@@ -1,0 +1,34 @@
+<h1>About the AWS Emulator</h1>
+<p class="lead">A local, in-memory emulator of AWS APIs. You keep using the standard AWS SDKs and CLI, point the endpoint URL at it, and get
+results in milliseconds &mdash; no AWS account, no deployment, no cost. Released 11 Nov 2026; source on
+<a href="https://github.com/aws/aws-emulator" target="_blank" rel="noopener">GitHub</a> (CC0 1.0, <code>vendor/</code> under Apache 2.0).</p>
+
+<h2>Key facts (from the official docs)</h2>
+<table class="grid">
+<tr><th>Fidelity</th><td>Services are generated from the public AWS API models (the ones behind the SDKs). Valid calls return the same result as AWS; invalid calls return the same errors. Behavior is filled in release by release.</td></tr>
+<tr><th>Unsupported calls</th><td>Return <b>HTTP 501 <code>NotImplemented</code></b>. Per-service scores (passing fidelity tests / total) are published on each GitHub release.</td></tr>
+<tr><th>State</th><td>In memory only. Stopping or crashing the emulator loses everything. No reset route &mdash; just restart it.</td></tr>
+<tr><th>Isolation</th><td>Each started copy has its own port, keys and state. One region and one account (<code>000000000000</code>, user <code>emulator</code>) per copy.</td></tr>
+<tr><th>Endpoint</th><td><code>https://127.0.0.1:9297</code> (HTTPS only, self-signed CA written to <code>~/.aws/emulator/&lt;port&gt;/ca.pem</code>).</td></tr>
+<tr><th>Auth</th><td>SigV4 on by default using freshly generated keys (<code>EMULATOR…</code> access key). <code>--auth off</code> accepts unsigned requests.</td></tr>
+<tr><th>Platforms</th><td>Native on Linux (x86_64 / aarch64, glibc 2.17+). <b>Windows &amp; macOS: run it in Docker</b> &mdash; this console automates that.</td></tr>
+<tr><th>Limits</th><td>~160&nbsp;MiB idle, grows with data; cap at 2&nbsp;GiB. Not for production; no durability/security guarantees. Telemetry is on by default upstream (this console starts it with <code>-t off</code>).</td></tr>
+<tr><th>Cost</th><td>No emulator fee.</td></tr>
+</table>
+
+<h2>How this console works</h2>
+<ol>
+<li><b>Install</b> &mdash; builds a Docker image from the official Linux RPM.</li>
+<li><b>Run &amp; control</b> &mdash; starts/stops the container, reads the generated keys and CA from <code>~/.aws/emulator/&lt;port&gt;/</code>.</li>
+<li><b>Service pages</b> &mdash; 15 services (6 core, 9 generative-AI / ML) with scenario flows and editable single-call forms.</li>
+<li><b>Call monitor (right half)</b> &mdash; every call, request and response. Toggle between boto3 hook capture, a wire-level logging proxy, or both.</li>
+</ol>
+
+<h2>Official documentation</h2>
+<ul>
+<li><a href="https://aws.amazon.com/products/developer-tools/emulator/" target="_blank" rel="noopener">Product page</a> &middot; <a href="https://aws.amazon.com/about-aws/whats-new/2026/11/aws-emulator-now-available/" target="_blank" rel="noopener">Announcement</a></li>
+<li><a href="https://docs.aws.amazon.com/emulator/latest/userguide/getting-started.html" target="_blank" rel="noopener">Getting started</a> &middot; <a href="https://docs.aws.amazon.com/emulator/latest/userguide/getting-started-docker.html" target="_blank" rel="noopener">Docker</a> &middot; <a href="https://docs.aws.amazon.com/emulator/latest/userguide/point-sdk-to-emulator.html" target="_blank" rel="noopener">Point the SDK at it</a> &middot; <a href="https://docs.aws.amazon.com/emulator/latest/userguide/cli-reference.html" target="_blank" rel="noopener">CLI reference</a></li>
+<li><a href="https://docs.aws.amazon.com/emulator/latest/userguide/fidelity.html" target="_blank" rel="noopener">Fidelity report</a> &middot; <a href="https://github.com/aws/aws-emulator/releases" target="_blank" rel="noopener">Releases (per-service scores)</a></li>
+</ul>
+
+<div class="note">The docs do not publish a full service list &mdash; use <a href="#/coverage">4. Service coverage</a> to probe what your emulator build implements.</div>

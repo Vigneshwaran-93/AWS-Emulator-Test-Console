@@ -1,0 +1,33 @@
+{% macro field(f) %}
+<div class="row">
+  <label for="">{{ f.label }}</label>
+  {% if f.type == 'textarea' %}
+    <textarea name="{{ f.name }}" rows="{{ f.rows }}" spellcheck="false"{% if f.sync %} data-sync="{{ f.name }}"{% endif %}>{{ f.default }}</textarea>
+  {% elif f.type == 'select' %}
+    <select name="{{ f.name }}"{% if f.sync %} data-sync="{{ f.name }}"{% endif %}>
+      {% for o in f.options %}<option value="{{ o }}"{% if o == f.default %} selected{% endif %}>{{ o if o != '' else '(none)' }}</option>{% endfor %}
+    </select>
+  {% elif f.type == 'checkbox' %}
+    <input type="checkbox" name="{{ f.name }}"{% if f.default %} checked{% endif %}>
+  {% elif f.type == 'file' %}
+    <input type="file" name="{{ f.name }}" accept="image/*,.pdf">
+  {% elif f.type == 'number' %}
+    <input type="number" step="any" name="{{ f.name }}" value="{{ f.default }}"{% if f.sync %} data-sync="{{ f.name }}"{% endif %}>
+  {% else %}
+    <input type="text" name="{{ f.name }}" value="{{ f.default }}" spellcheck="false"{% if f.sync %} data-sync="{{ f.name }}"{% endif %}>
+  {% endif %}
+  {% if f.help %}<div class="help">{{ f.help }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro card(svc_id, kind, it, open=false) %}
+<details class="card" {% if open %}open{% endif %}>
+  <summary><span class="ctitle">{{ it.title }}</span> <span class="badge" data-badge></span></summary>
+  <form class="run" data-url="/api/run/{{ svc_id }}/{{ kind }}/{{ it.id }}">
+    {% if it.desc %}<p class="desc">{{ it.desc }}</p>{% endif %}
+    {% for f in it.fields %}{{ field(f) }}{% endfor %}
+    <div class="actions"><button type="submit" class="primary">{{ 'Run scenario' if kind == 'scenario' else 'Run' }}</button> <span class="runmsg"></span></div>
+    <div class="result" hidden></div>
+  </form>
+</details>
+{% endmacro %}
